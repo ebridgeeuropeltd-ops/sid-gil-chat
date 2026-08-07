@@ -47,7 +47,7 @@ GUARDRAILS:
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "qwen-2.5-32b",
+        model: "llama-3.3-70b-versatile",
         messages: fullMessages
       })
     });
