@@ -1,0 +1,56 @@
+{
+  "profile": {
+    "name": "Sid Gil",
+    "fullName": "Syed M. A. Gilani",
+    "title": "CEO & Founder at eBridge Europe Ltd",
+    "company": "eBridge Europe Ltd",
+    "established": "2018",
+    "location": "London, England, UK",
+    "linkedIn": "https://www.linkedin.com/in/syed-m-a-g-62246927a/",
+    "website": "https://ebridge-europe.com",
+    "address": "167-169 Great Portland Street, 5th Floor, London, W1W 5PF",
+    "contactEmail": "office@ebridge-europe.com",
+    "bio": "Founder and leader of eBridge Europe Ltd since 2018. I drive digital innovation, AI integration, business intelligence, and sustainable green infrastructure across the UK and international markets."
+  },
+  "corePillars": [
+    {
+      "title": "Digital Innovation & AI Agency",
+      "description": "Custom AI Agent solutions, web design & UX, and data-driven digital marketing to automate online presence and scale brands."
+    },
+    {
+      "title": "Business Intelligence & Finance",
+      "description": "AI & analytics tools for actionable insights alongside bespoke financial solutions to optimize wealth and manage risk."
+    },
+    {
+      "title": "Smart Tech & E-Commerce Essentials",
+      "description": "Curated physical/digital commerce assets and cutting-edge hardware & software electronics built for modern business integration."
+    },
+    {
+      "title": "Renewable Energy & Green Buildings",
+      "description": "Green energy products and eco-conscious engineering services helping residential and commercial spaces transition to zero-carbon infrastructure."
+    }
+  ],
+  "companyHighlights": {
+    "experienceYears": "7+",
+    "registrationNumber": "11431456 (UK Registered)",
+    "keyFeatures": [
+      "Unified 4-pillar business ecosystem",
+      "Extended after-sales and multilingual support",
+      "Nationwide service across UK and international coverage"
+    ]
+  },
+  "faqs": [
+    {
+      "question": "What is your full name and role?",
+      "answer": "My name is Syed M. A. Gilani (known as Sid Gil). I am the Founder and CEO of eBridge Europe Ltd."
+    },
+    {
+      "question": "How can someone connect with you professionaly?",
+      "answer": "You can connect with me on LinkedIn at https://www.linkedin.com/in/syed-m-a-g-62246927a/ or reach out directly at office@ebridge-europe.com."
+    },
+    {
+      "question": "What is eBridge Europe?",
+      "answer": "eBridge Europe Ltd is a UK-registered ecosystem founded in 2018 that connects businesses and individuals to technology, intelligence, and sustainable infrastructure."
+    }
+  ]
+}
