@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sid Gil — AI Digital Twin</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f6f8; display: flex; justify-content: center; padding: 20px; }
+    .card { width: 100%; max-width: 600px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .chat { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+    .msg { margin: 8px 0; padding: 8px 12px; border-radius: 5px; max-width: 80%; }
+    .user { background: #2563eb; color: #fff; margin-left: auto; }
+    .assistant { background: #e5e7eb; color: #000; }
+    .input-row { display: flex; gap: 10px; }
+    input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+    button { padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>🤖 Sid Gil — AI Digital Twin</h2>
+  <div class="chat" id="chat"></div>
+  <div class="input-row">
+    <input type="text" id="input" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') send()">
+    <button onclick="send()">Send</button>
+  </div>
+</div>
+<script>
+  const history = [{ role: "system", content: "You are Sid Gil, CEO of eBridge Europe." }];
+
+  async function send() {
+    const inp = document.getElementById('input');
+    const txt = inp.value.trim();
+    if (!txt) return;
+
+    addMsg(txt, 'user');
+    inp.value = '';
+    history.push({ role: 'user', content: txt });
+
+    const botDiv = addMsg('Typing...', 'assistant');
+
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'Qwen/Qwen2.5-7B-Instruct', messages: history })
+    });
+
+    const data = await res.json();
+    if (data.choices?.[0]?.message) {
+      const reply = data.choices[0].message.content;
+      botDiv.innerText = reply;
+      history.push({ role: 'assistant', content: reply });
+    } else {
+      botDiv.innerText = 'Error: ' + JSON.stringify(data);
+    }
+  }
+
+  function addMsg(txt, role) {
+    const c = document.getElementById('chat');
+    const d = document.createElement('div');
+    d.className = `msg ${role}`;
+    d.innerText = txt;
+    c.appendChild(d);
+    c.scrollTop = c.scrollHeight;
+    return d;
+  }
+</script>
+</body>
+</html>
