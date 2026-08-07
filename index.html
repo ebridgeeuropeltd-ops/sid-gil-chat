@@ -2,67 +2,157 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sid Gil — AI Digital Twin</title>
   <style>
-    body { font-family: sans-serif; background: #f4f6f8; display: flex; justify-content: center; padding: 20px; }
-    .card { width: 100%; max-width: 600px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    .chat { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
-    .msg { margin: 8px 0; padding: 8px 12px; border-radius: 5px; max-width: 80%; }
-    .user { background: #2563eb; color: #fff; margin-left: auto; }
-    .assistant { background: #e5e7eb; color: #000; }
-    .input-row { display: flex; gap: 10px; }
-    input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-    button { padding: 10px 20px; background: #2563eb; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      height: 80vh;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header {
+      padding: 16px;
+      background: #ffffff;
+      border-bottom: 1px solid #e1e4e8;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    .chat-box {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .message {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      line-height: 1.4;
+      font-size: 0.95rem;
+    }
+    .user {
+      align-self: flex-end;
+      background-color: #2563eb;
+      color: white;
+    }
+    .bot {
+      align-self: flex-start;
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .error {
+      align-self: flex-start;
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+    .input-container {
+      display: flex;
+      padding: 12px;
+      border-top: 1px solid #e1e4e8;
+      background: #ffffff;
+    }
+    input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      outline: none;
+      font-size: 0.95rem;
+    }
+    button {
+      margin-left: 8px;
+      padding: 10px 18px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:disabled {
+      background-color: #94a3b8;
+    }
   </style>
 </head>
 <body>
-<div class="card">
-  <h2>🤖 Sid Gil — AI Digital Twin</h2>
-  <div class="chat" id="chat"></div>
-  <div class="input-row">
-    <input type="text" id="input" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') send()">
-    <button onclick="send()">Send</button>
+
+<div class="chat-container">
+  <div class="chat-header">🤖 Sid Gil — AI Digital Twin</div>
+  <div class="chat-box" id="chatBox"></div>
+  <div class="input-container">
+    <input type="text" id="userInput" placeholder="Ask a question..." onkeydown="if(event.key === 'Enter') send()">
+    <button id="sendBtn" onclick="send()">Send</button>
   </div>
 </div>
+
 <script>
-  const history = [{ role: "system", content: "You are Sid Gil, CEO of eBridge Europe." }];
+  let history = [
+    { role: "system", content: "You are the AI Digital Twin of Sid Gil. Answer questions politely, concisely, and accurately on his behalf." }
+  ];
 
   async function send() {
-    const inp = document.getElementById('input');
-    const txt = inp.value.trim();
-    if (!txt) return;
+    const input = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const text = input.value.trim();
+    if (!text) return;
 
-    addMsg(txt, 'user');
-    inp.value = '';
-    history.push({ role: 'user', content: txt });
+    appendMessage(text, "user");
+    history.push({ role: "user", content: text });
+    input.value = "";
+    input.disabled = true;
+    sendBtn.disabled = true;
 
-    const botDiv = addMsg('Typing...', 'assistant');
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "meta-llama/Llama-3.2-1B-Instruct",
+          messages: history
+        })
+      });
 
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'Qwen/Qwen2.5-7B-Instruct', messages: history })
-    });
+      const data = await res.json();
+      if (!res.ok) throw new Error(JSON.stringify(data));
 
-    const data = await res.json();
-    if (data.choices?.[0]?.message) {
       const reply = data.choices[0].message.content;
-      botDiv.innerText = reply;
-      history.push({ role: 'assistant', content: reply });
-    } else {
-      botDiv.innerText = 'Error: ' + JSON.stringify(data);
+      appendMessage(reply, "bot");
+      history.push({ role: "assistant", content: reply });
+    } catch (err) {
+      appendMessage("Error: " + err.message, "error");
+    } finally {
+      input.disabled = false;
+      sendBtn.disabled = false;
+      input.focus();
     }
   }
 
-  function addMsg(txt, role) {
-    const c = document.getElementById('chat');
-    const d = document.createElement('div');
-    d.className = `msg ${role}`;
-    d.innerText = txt;
-    c.appendChild(d);
-    c.scrollTop = c.scrollHeight;
-    return d;
+  function appendMessage(text, className) {
+    const box = document.getElementById("chatBox");
+    const msg = document.createElement("div");
+    msg.className = `message ${className}`;
+    msg.innerText = text;
+    box.appendChild(msg);
+    box.scrollTop = box.scrollHeight;
   }
 </script>
+
 </body>
 </html>
