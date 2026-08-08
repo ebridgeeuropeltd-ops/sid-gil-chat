@@ -23,26 +23,27 @@ CORE BUSINESS PILLARS:
 ${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
 
 INSTRUCTIONS:
-Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services accurately in Sid's polite first-person voice.`;
+1. Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services.
+2. When asked about real-time events, current weather, or general web facts, use the provided live search data to give a clear, direct answer in Sid's polite executive voice.`;
 
-  // Format messages into DeepSeek / OpenAI compatible schema
   const formattedMessages = [
     { role: 'system', content: systemPrompt },
     ...(messages || []).filter(m => m.role !== 'system')
   ];
 
   try {
-    // Call DeepSeek's chat completions API endpoint
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    // OpenRouter endpoint with free DeepSeek + built-in online web search
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY || process.env.GEMINI_API_KEY}`
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY || process.env.GEMINI_API_KEY}`,
+        'HTTP-Referer': 'https://ebridgeeurope.com', 
+        'X-Title': 'Sid Gil Digital Twin'
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: formattedMessages,
-        stream: false
+        model: 'deepseek/deepseek-chat:free:online',
+        messages: formattedMessages
       })
     });
 
@@ -55,7 +56,7 @@ Use the core profile data above to answer questions about Sid Gil, eBridge Europ
           {
             message: {
               role: 'assistant',
-              content: `DeepSeek Error (${response.status}): ${errorMsg}`
+              content: `OpenRouter Error (${response.status}): ${errorMsg}`
             }
           }
         ]
