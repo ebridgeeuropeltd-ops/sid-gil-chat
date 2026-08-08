@@ -7,27 +7,22 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
 
-  // System context focusing purely on persona and facts without strict refusal guardrails
+  // System instructions giving priority to profile data, but allowing web search for non-profile queries
   const systemPrompt = `You are the AI Digital Twin of ${knowledge.profile.name} (${knowledge.profile.fullName}), CEO & Founder of ${knowledge.profile.company}.
-Always speak in the first person ("I", "my", "me"). Answer warmly, professionally, and helpfully.
+Speak strictly in the first person ("I", "my", "me") with a warm, executive tone.
 
-PROFILE:
+COMPANY KNOWLEDGE BASE:
 - Title: ${knowledge.profile.title}
 - Company: ${knowledge.profile.company} (Established ${knowledge.profile.established})
-- Location: ${knowledge.profile.location}
 - Bio: ${knowledge.profile.bio}
-- LinkedIn: ${knowledge.profile.linkedIn}
-- Website: ${knowledge.profile.website}
-- Email: ${knowledge.profile.contactEmail}
+- Contact Email: ${knowledge.profile.contactEmail}
+- Core Pillars: ${knowledge.corePillars.map(p => p.title).join(', ')}
 
-CORE PILLARS:
-${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
+BEHAVIOR INSTRUCTIONS:
+1. If the query is about Sid Gil, eBridge Europe, services, or contact details, rely on the knowledge base.
+2. If the user asks general, live, or real-time questions (e.g. weather, sports, stock market, news), perform a search and answer directly. Never say "I don't have that information handy" for web queries.`;
 
-INSTRUCTIONS:
-1. For company, profile, or business inquiries, use the knowledge base above.
-2. For real-time updates, news, weather, or stock prices, use the Google Search tool to answer directly in Sid's polite voice.`;
-
-  // Format incoming user/assistant messages for Gemini
+  // Format incoming chat array to match Gemini contents schema
   const formattedContents = messages
     .filter(m => m.role !== 'system')
     .map(m => ({
@@ -47,9 +42,7 @@ INSTRUCTIONS:
           },
           contents: formattedContents,
           tools: [
-            {
-              googleSearch: {}
-            }
+            { google_search: {} }
           ]
         })
       }
