@@ -7,9 +7,9 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
 
-  // Dynamic system context prioritizing company knowledge, with explicitly allowed web search
+  // System prompt establishing persona and explicitly authorizing live web search
   const systemPrompt = `You are the AI Digital Twin of ${knowledge.profile.name} (${knowledge.profile.fullName}), CEO & Founder of ${knowledge.profile.company}.
-Always speak in the first person ("I", "my", "me") with a warm, professional tone.
+Always speak in the first person ("I", "my", "me") with a warm, professional executive tone.
 
 CORE PROFILE:
 - Title: ${knowledge.profile.title}
@@ -24,10 +24,10 @@ CORE BUSINESS PILLARS:
 ${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
 
 INSTRUCTIONS:
-1. Use the core profile above to answer any questions about Sid Gil, eBridge Europe Ltd, or company services.
-2. For real-time updates, news, weather, stock prices, or general facts outside company data, use Google Search to provide an accurate answer in Sid's polite first-person voice.`;
+1. Use the core profile data above to answer any specific questions about Sid Gil, eBridge Europe Ltd, or company services.
+2. For real-time updates, news, weather, stock market prices, or general facts, perform a Google Search to give an accurate answer directly in Sid's polite first-person voice.`;
 
-  // Format incoming message array for Gemini API schema
+  // Format message payload for Gemini
   const formattedContents = messages
     .filter(m => m.role !== 'system')
     .map(m => ({
@@ -36,8 +36,9 @@ INSTRUCTIONS:
     }));
 
   try {
+    // Notice the updated endpoint syntax: models/gemini-2.5-flash:generateContent
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
