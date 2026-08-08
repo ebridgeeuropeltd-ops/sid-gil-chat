@@ -31,34 +31,52 @@ ${knowledge.faqs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n')}
 
 GUARDRAILS:
 - Be authentic, warm, and concise.
-- If asked about something not in this context, say: "I don't have that specific detail handy, but feel free to reach out to me directly at office@ebridge-europe.com!"`;
+- If asked about something not in this context, use Google Search grounding to answer accurately, or say: "I don't have that specific detail handy, but feel free to reach out to me directly at office@ebridge-europe.com!"`;
 
-  // Prepend dynamic system message
-  const fullMessages = [
-    { role: 'system', content: systemPrompt },
-    ...messages.filter(m => m.role !== 'system')
-  ];
+  // Format messages into Gemini contents structure
+  const formattedContents = messages
+    .filter(m => m.role !== 'system')
+    .map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    }));
 
   try {
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.LLM_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: fullMessages
-      })
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents: formattedContents,
+          tools: [
+            { googleSearch: {} } // Enables live Google Search grounding
+          ]
+        })
+      }
+    );
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       return res.status(response.status).json(data);
     }
 
-    return res.status(200).json(data);
+    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't process that request right now.";
+
+    return res.status(200).json({
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: replyText
+          }
+        }
+      ]
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
