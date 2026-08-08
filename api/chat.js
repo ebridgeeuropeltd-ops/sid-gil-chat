@@ -26,7 +26,7 @@ INSTRUCTIONS:
 1. Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services.
 2. For real-time updates, news, weather, stock market prices, or general facts, perform a Google Search to give an accurate answer directly in Sid's polite first-person voice.`;
 
-  const formattedContents = messages
+  const formattedContents = (messages || [])
     .filter(m => m.role !== 'system')
     .map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -34,9 +34,8 @@ INSTRUCTIONS:
     }));
 
   try {
-    // Endpoint updated to gemini-3.1-pro-preview
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,7 +54,17 @@ INSTRUCTIONS:
     const data = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json(data);
+      const errorMsg = data.error?.message || JSON.stringify(data);
+      return res.status(200).json({
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: `Error (${response.status}): ${errorMsg}`
+            }
+          }
+        ]
+      });
     }
 
     const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't process that request right now.";
@@ -71,6 +80,15 @@ INSTRUCTIONS:
       ]
     });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(200).json({
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: `Server Error: ${error.message}`
+          }
+        }
+      ]
+    });
   }
 }
