@@ -23,33 +23,28 @@ CORE BUSINESS PILLARS:
 ${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
 
 INSTRUCTIONS:
-1. Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services.
-2. For real-time updates, news, weather, stock market prices, or general facts, perform a Google Search to give an accurate answer directly in Sid's polite first-person voice.`;
+Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services accurately in Sid's polite first-person voice.`;
 
-  const formattedContents = (messages || [])
-    .filter(m => m.role !== 'system')
-    .map(m => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    }));
+  // Format messages into DeepSeek / OpenAI compatible schema
+  const formattedMessages = [
+    { role: 'system', content: systemPrompt },
+    ...(messages || []).filter(m => m.role !== 'system')
+  ];
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents: formattedContents,
-          tools: [
-            { google_search: {} }
-          ]
-        })
-      }
-    );
+    // Call DeepSeek's chat completions API endpoint
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY || process.env.GEMINI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: formattedMessages,
+        stream: false
+      })
+    });
 
     const data = await response.json();
 
@@ -60,14 +55,14 @@ INSTRUCTIONS:
           {
             message: {
               role: 'assistant',
-              content: `Error (${response.status}): ${errorMsg}`
+              content: `DeepSeek Error (${response.status}): ${errorMsg}`
             }
           }
         ]
       });
     }
 
-    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't process that request right now.";
+    const replyText = data.choices?.[0]?.message?.content || "I couldn't process that request right now.";
 
     return res.status(200).json({
       choices: [
