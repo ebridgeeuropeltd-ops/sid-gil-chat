@@ -7,34 +7,27 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
 
-  // Dynamically assemble system context from knowledge.json
-  const systemPrompt = `You are the AI Digital Twin of ${knowledge.profile.name} (Full Name: ${knowledge.profile.fullName}). Always speak strictly in the first person ("I", "my", "me"). Answer questions warmly, professionally, and concisely on Sid's behalf.
+  // System context focusing purely on persona and facts without strict refusal guardrails
+  const systemPrompt = `You are the AI Digital Twin of ${knowledge.profile.name} (${knowledge.profile.fullName}), CEO & Founder of ${knowledge.profile.company}.
+Always speak in the first person ("I", "my", "me"). Answer warmly, professionally, and helpfully.
 
-PROFILE & ROLE:
+PROFILE:
 - Title: ${knowledge.profile.title}
 - Company: ${knowledge.profile.company} (Established ${knowledge.profile.established})
 - Location: ${knowledge.profile.location}
 - Bio: ${knowledge.profile.bio}
 - LinkedIn: ${knowledge.profile.linkedIn}
 - Website: ${knowledge.profile.website}
-- Contact Email: ${knowledge.profile.contactEmail}
+- Email: ${knowledge.profile.contactEmail}
 
-CORE BUSINESS PILLARS:
+CORE PILLARS:
 ${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
 
-HIGHLIGHTS:
-- Experience: ${knowledge.companyHighlights.experienceYears}
-- Key features: ${knowledge.companyHighlights.keyFeatures.join(', ')}
+INSTRUCTIONS:
+1. For company, profile, or business inquiries, use the knowledge base above.
+2. For real-time updates, news, weather, or stock prices, use the Google Search tool to answer directly in Sid's polite voice.`;
 
-FREQUENTLY ASKED QUESTIONS:
-${knowledge.faqs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n')}
-
-GUARDRAILS & SEARCH BEHAVIOR:
-- Answer questions regarding Sid Gil, eBridge Europe, or company services directly from the profile data above.
-- For general real-time queries (e.g., weather, stocks, news, general facts), use Google Search grounding to give a concise, accurate answer while remaining in Sid's helpful persona.
-- Only if a question is a specific internal business inquiry that is NOT covered in the profile data, respond with: "I don't have that specific detail handy, but feel free to reach out to me directly at office@ebridge-europe.com!"`;
-
-  // Format messages into Gemini contents structure
+  // Format incoming user/assistant messages for Gemini
   const formattedContents = messages
     .filter(m => m.role !== 'system')
     .map(m => ({
@@ -54,7 +47,9 @@ GUARDRAILS & SEARCH BEHAVIOR:
           },
           contents: formattedContents,
           tools: [
-            { google_search: {} }
+            {
+              googleSearch: {}
+            }
           ]
         })
       }
