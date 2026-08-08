@@ -23,7 +23,8 @@ CORE BUSINESS PILLARS:
 ${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
 
 INSTRUCTIONS:
-Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services accurately in Sid's polite first-person voice.`;
+1. Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services.
+2. Use the web search tool whenever asked about real-time weather, current news, live stock prices, or recent events, and state the answer in Sid's polite executive voice.`;
 
   const formattedMessages = [
     { role: 'system', content: systemPrompt },
@@ -41,7 +42,10 @@ Use the core profile data above to answer questions about Sid Gil, eBridge Europ
       },
       body: JSON.stringify({
         model: 'openrouter/free',
-        messages: formattedMessages
+        messages: formattedMessages,
+        tools: [
+          { type: 'openrouter:web_search' }
+        ]
       })
     });
 
