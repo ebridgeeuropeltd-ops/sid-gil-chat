@@ -1,8 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
 import knowledge from '../knowledge.json';
-
-// Initialize Google Gen AI client with your env API key
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -30,7 +26,6 @@ INSTRUCTIONS:
 1. Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services.
 2. For real-time updates, news, weather, stock market prices, or general facts, perform a Google Search to give an accurate answer directly in Sid's polite first-person voice.`;
 
-  // Format message payload for Gemini
   const formattedContents = (messages || [])
     .filter(m => m.role !== 'system')
     .map(m => ({
@@ -39,16 +34,40 @@ INSTRUCTIONS:
     }));
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: formattedContents,
-      config: {
-        systemInstruction: systemPrompt,
-        tools: [{ googleSearch: {} }]
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          },
+          contents: formattedContents,
+          tools: [
+            { google_search: {} }
+          ]
+        })
       }
-    });
+    );
 
-    const replyText = response.text || "I couldn't process that request right now.";
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMsg = data.error?.message || JSON.stringify(data);
+      return res.status(200).json({
+        choices: [
+          {
+            message: {
+              role: 'assistant',
+              content: `Error (${response.status}): ${errorMsg}`
+            }
+          }
+        ]
+      });
+    }
+
+    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't process that request right now.";
 
     return res.status(200).json({
       choices: [
@@ -66,7 +85,7 @@ INSTRUCTIONS:
         {
           message: {
             role: 'assistant',
-            content: `API Error: ${error.message}`
+            content: `Server Error: ${error.message}`
           }
         }
       ]
