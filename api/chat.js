@@ -7,7 +7,6 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
 
-  // System prompt establishing persona and explicitly authorizing live web search
   const systemPrompt = `You are the AI Digital Twin of ${knowledge.profile.name} (${knowledge.profile.fullName}), CEO & Founder of ${knowledge.profile.company}.
 Always speak in the first person ("I", "my", "me") with a warm, professional executive tone.
 
@@ -24,10 +23,9 @@ CORE BUSINESS PILLARS:
 ${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
 
 INSTRUCTIONS:
-1. Use the core profile data above to answer any specific questions about Sid Gil, eBridge Europe Ltd, or company services.
+1. Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services.
 2. For real-time updates, news, weather, stock market prices, or general facts, perform a Google Search to give an accurate answer directly in Sid's polite first-person voice.`;
 
-  // Format message payload for Gemini
   const formattedContents = messages
     .filter(m => m.role !== 'system')
     .map(m => ({
@@ -36,9 +34,9 @@ INSTRUCTIONS:
     }));
 
   try {
-    // Notice the updated endpoint syntax: models/gemini-2.5-flash:generateContent
+    // Uses gemini-1.5-flash endpoint to ensure stable generation with search grounding
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
