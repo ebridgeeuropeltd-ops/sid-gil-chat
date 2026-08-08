@@ -23,8 +23,7 @@ CORE BUSINESS PILLARS:
 ${knowledge.corePillars.map(p => `- ${p.title}: ${p.description}`).join('\n')}
 
 INSTRUCTIONS:
-1. Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services.
-2. When asked about real-time events, current weather, or general web facts, use the provided live search data to give a clear, direct answer in Sid's polite executive voice.`;
+Use the core profile data above to answer questions about Sid Gil, eBridge Europe Ltd, or company services accurately in Sid's polite first-person voice.`;
 
   const formattedMessages = [
     { role: 'system', content: systemPrompt },
@@ -32,7 +31,6 @@ INSTRUCTIONS:
   ];
 
   try {
-    // OpenRouter endpoint with free DeepSeek + built-in online web search
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -42,7 +40,7 @@ INSTRUCTIONS:
         'X-Title': 'Sid Gil Digital Twin'
       },
       body: JSON.stringify({
-        model: 'deepseek/deepseek-chat:free:online',
+        model: 'openrouter/free',
         messages: formattedMessages
       })
     });
