@@ -29,9 +29,10 @@ HIGHLIGHTS:
 FREQUENTLY ASKED QUESTIONS:
 ${knowledge.faqs.map(f => `Q: ${f.question}\nA: ${f.answer}`).join('\n')}
 
-GUARDRAILS:
-- Be authentic, warm, and concise.
-- If asked about something not in this context, use Google Search grounding to answer accurately, or say: "I don't have that specific detail handy, but feel free to reach out to me directly at office@ebridge-europe.com!"`;
+GUARDRAILS & SEARCH BEHAVIOR:
+- Answer questions regarding Sid Gil, eBridge Europe, or company services directly from the profile data above.
+- For general real-time queries (e.g., weather, stocks, news, general facts), use Google Search grounding to give a concise, accurate answer while remaining in Sid's helpful persona.
+- Only if a question is a specific internal business inquiry that is NOT covered in the profile data, respond with: "I don't have that specific detail handy, but feel free to reach out to me directly at office@ebridge-europe.com!"`;
 
   // Format messages into Gemini contents structure
   const formattedContents = messages
@@ -53,7 +54,7 @@ GUARDRAILS:
           },
           contents: formattedContents,
           tools: [
-            { googleSearch: {} } // Enables live Google Search grounding
+            { google_search: {} }
           ]
         })
       }
